@@ -5,13 +5,14 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask,render_template,request,redirect,url_for,jsonify,abort,flash
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import sys
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -57,6 +58,9 @@ class Artist(db.Model):
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
+
+db.create_all()
+db.session.commit()
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -219,6 +223,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
 
@@ -415,12 +420,43 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+        error = False 
+        body = {"success":True}
+        try:
+          print(request.form)
+          name = request.form.get('name')
+          city = request.form.get('city')
+          state = request.form.get('state')
+          phone = request.form.get('phone')
+          genres = request.form.get('genres')
+          image_link = request.form.get('image_link')
+          facebook_link = request.form.get('facebook_link')
+          if(len(name)>0):
+              artist = Artist(name=name,city=city,state=state,phone=phone,genres=genres,image_link=image_link,facebook_link=facebook_link)
+              db.session.add(artist)
+              db.session.commit()
+              #body['description'] = artis.description
+              #body['id'] = artist.id
+              #body['state'] =  todo.completed
+          else:
+              raise Exception("empty todo")
+        except:
+            error=True
+            db.session.rollback()
+            print(sys.exc_info())
+        finally:
+            db.session.close()
+        if error:
+            body['success'] = False
+        #print(error)
+        #print(body)
+        #return(jsonify(body))
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+        # on successful db insert, flash success
+        flash('Artist ' + request.form['name'] + ' was successfully listed!')
+        # TODO: on unsuccessful db insert, flash an error instead.
+        # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+        return render_template('pages/home.html')
 
 
 #  Shows
