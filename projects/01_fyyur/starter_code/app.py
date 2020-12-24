@@ -587,7 +587,7 @@ def create_show_submission():
     start_time = request.form.get('start_time')
     if(True):
         show = Show(venue_id=venue_id,venue_name=venue_name,artist_id=artist_id,artist_name=artist_name,artist_image_link=artist_image_link,start_time=start_time)
-        db.session.add(artist)
+        db.session.add(show)
         db.session.commit()
         #body['description'] = artis.description
         #body['id'] = artist.id
