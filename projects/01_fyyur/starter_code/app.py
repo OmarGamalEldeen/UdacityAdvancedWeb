@@ -32,7 +32,7 @@ class Venue(db.Model):
     __tablename__ = 'Venue'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String,unique=True, nullable=False)
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
@@ -46,12 +46,12 @@ class Artist(db.Model):
     __tablename__ = 'Artist'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String,unique=True, nullable=False)
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
+    image_link = db.Column(db.String(500),unique=True, nullable=False)
     facebook_link = db.Column(db.String(120))
     def __repr__(self):
         return f'<Artist ID: {self.id}, name: {self.name} , city : {self.city}>'
@@ -62,13 +62,14 @@ class Show(db.Model):
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)
-    venue_id = db.Column(db.Integer,db.ForeignKey(Venue.id))
-    venue_name = db.Column(db.String(120),db.ForeignKey(Venue.name))
-    artist_id = db.Column(db.Integer,db.ForeignKey(Artist.id))
-    artist_name =  db.Column(db.String(120),db.ForeignKey(Artist.name))
-    artist_image_link = db.Column(db.String(500),db.ForeignKey(Artist.image_link))
+    venue_id = db.Column(db.Integer,db.ForeignKey('Venue.id'))
+    venue_name = db.Column(db.String(120),db.ForeignKey('Venue.name'))
+    artist_id = db.Column(db.Integer,db.ForeignKey('Artist.id'))
+    artist_name =  db.Column(db.String(120),db.ForeignKey('Artist.name'))
+    artist_image_link = db.Column(db.String(500),db.ForeignKey('Artist.image_link'))
     start_time = db.Column(db.DateTime)
 
+#db.drop_all() 
 db.create_all()
 db.session.commit()
 #----------------------------------------------------------------------------#
@@ -519,6 +520,7 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
+  """
   data=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
@@ -555,6 +557,7 @@ def shows():
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
   }]
+  """
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -568,6 +571,38 @@ def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
 
+  
+  error = False 
+  body = {"success":True}
+  try:
+    print(request.form)
+    venue_id = request.form.get('venue_id')
+    #venue_name = request.form.get('venue_name')
+    venue_name = Venue.query.filter_by(id=venue_id).first().name
+    artist_id = request.form.get('artist_id')
+    #artist_name = request.form.get('artist_name')
+    artist_name = Artist.query.filter_by(id=artist_id).first().name
+    #artist_image_link = request.form.get('artist_image_link')
+    artist_image_link = Artist.query.filter_by(id=artist_id).first().image_link
+    start_time = request.form.get('start_time')
+    if(True):
+        show = Show(venue_id=venue_id,venue_name=venue_name,artist_id=artist_id,artist_name=artist_name,artist_image_link=artist_image_link,start_time=start_time)
+        db.session.add(artist)
+        db.session.commit()
+        #body['description'] = artis.description
+        #body['id'] = artist.id
+        #body['state'] =  todo.completed
+    else:
+        raise Exception("empty todo")
+  except:
+      error=True
+      db.session.rollback()
+      print(sys.exc_info())
+  finally:
+      db.session.close()
+  if error:
+      body['success'] = False
+  
   # on successful db insert, flash success
   flash('Show was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
