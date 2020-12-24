@@ -53,7 +53,8 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-
+    def __repr__(self):
+        return f'<Artist ID: {self.id}, name: {self.name} , city : {self.city}>'
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -248,6 +249,7 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
+  """
   data=[{
     "id": 4,
     "name": "Guns N Petals",
@@ -258,6 +260,15 @@ def artists():
     "id": 6,
     "name": "The Wild Sax Band",
   }]
+  """
+  data = []
+  artists = Artist.query.all()
+
+  for artist in artists:
+      data.append({
+          "id": artist.id,
+          "name": artist.name
+        })
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
