@@ -227,6 +227,34 @@ def create_venue_submission():
 
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  error = False 
+  body = {"success":True}
+  try:
+    print(request.form)
+    name = request.form.get('name')
+    city = request.form.get('city')
+    state = request.form.get('state')
+    address = request.form.get('address')
+    phone = request.form.get('phone')
+    image_link = request.form.get('image_link')
+    facebook_link = request.form.get('facebook_link')
+    if(len(name)>0):
+        venue = Venue(name=name,city=city,state=state,address=address,phone=phone,image_link=image_link,facebook_link=facebook_link)
+        db.session.add(venue)
+        db.session.commit()
+        #body['description'] = artis.description
+        #body['id'] = artist.id
+        #body['state'] =  todo.completed
+    else:
+        raise Exception("empty venue")
+  except:
+      error=True
+      db.session.rollback()
+      print(sys.exc_info())
+  finally:
+      db.session.close()
+  if error:
+      body['success'] = False
 
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
@@ -290,6 +318,7 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  
   data1={
     "id": 4,
     "name": "Guns N Petals",
@@ -361,7 +390,10 @@ def show_artist(artist_id):
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
   }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  
+  #data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
+  #data = Artist.query.filter_by(id=artist_id).first()
+  
   return render_template('pages/show_artist.html', artist=data)
 
 #  Update
